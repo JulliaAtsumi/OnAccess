@@ -16,21 +16,43 @@ class local extends StatefulWidget {
   String latitude = '';
   String longitude = '';
 
-  void getCurrentLocation() async {
-    var position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
+  Future<Position> getCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
 
-    var lati = position.latitude;
-    var long = position.longitude;
-
-    latitude = "$lati";
-    longitude = "$long";
-
-    setState() {
-      locationMessage = "Latitude: $lati and Longitude: $long";
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled){
+      return Future.error('Serviços de localização estão desabilitados!');
     }
 
-    ;
+    permission = await Geolocator.checkPermission();
+    if (permission== LocationPermission.denied){
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied){
+        return Future.error('Permissão rejeitada');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever){
+      return Future.error('Localização permanentemente rejeitada');
+    }
+
+    return await Geolocator.getCurrentPosition();
+
+    // var position = await Geolocator.getCurrentPosition(
+    //     desiredAccuracy: LocationAccuracy.high);
+
+    // var lati = position.latitude;
+    // var long = position.longitude;
+
+    // latitude = "$lati";
+    // longitude = "$long";
+
+    // setState() {
+    //   locationMessage = "Latitude: $lati and Longitude: $long";
+    // }
+
+
   }
 
   //funcao para abrir com o google maps
